@@ -4,6 +4,8 @@ import javax.sql.DataSource;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
+import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -16,6 +18,7 @@ import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -34,17 +37,22 @@ import com.example.demo.model.User;
 @EnableBatchProcessing
 public class SpringBatchConfig {
 
-	@Bean(name="dataSource")
+	@Bean
 	@ConfigurationProperties("spring.batch.datasource")
-	public DataSource getBatchDataSource() {
+	public DataSource batchDataSource() {
 		return DataSourceBuilder.create().build();
 	}
 
 	@Bean
-	public Job job(final JobBuilderFactory jobBuilderFactory, 
+	BatchConfigurer configurer(@Qualifier("batchDataSource") DataSource dataSource) {
+		return new DefaultBatchConfigurer(batchDataSource());
+	}
+
+	@Bean
+	public Job job(final JobBuilderFactory jobBuilderFactory,
 			StepBuilderFactory stepBuilderFactory,
-			ItemReader<User> itemReader, 
-			ItemProcessor<User, User> itemProcessor, 
+			ItemReader<User> itemReader,
+			ItemProcessor<User, User> itemProcessor,
 			ItemWriter<User> itemWriter) {
 
 		Step step = stepBuilderFactory.get("ETL-File-Load")
