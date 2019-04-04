@@ -22,8 +22,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.cloud.task.configuration.DefaultTaskConfigurer;
+import org.springframework.cloud.task.configuration.TaskConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 
 import com.example.demo.model.User;
@@ -37,6 +40,7 @@ import com.example.demo.model.User;
 @EnableBatchProcessing
 public class SpringBatchConfig {
 
+	@Primary
 	@Bean
 	@ConfigurationProperties("spring.batch.datasource")
 	public DataSource batchDataSource() {
@@ -44,6 +48,13 @@ public class SpringBatchConfig {
 	}
 
 	@Bean
+	@Primary
+	public TaskConfigurer taskConfigurer() {
+		return new DefaultTaskConfigurer(batchDataSource());
+	}
+
+	@Bean
+	@Primary
 	BatchConfigurer configurer(@Qualifier("batchDataSource") DataSource dataSource) {
 		return new DefaultBatchConfigurer(batchDataSource());
 	}
